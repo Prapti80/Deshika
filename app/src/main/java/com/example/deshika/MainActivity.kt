@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
             DeshikaTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Prapti Rani",
+                        name = "Prap",
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -38,10 +38,3 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    DeshikaTheme {
-        Greeting("Android")
-    }
-}
