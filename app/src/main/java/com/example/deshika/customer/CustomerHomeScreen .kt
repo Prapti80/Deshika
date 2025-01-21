@@ -1,163 +1,153 @@
 package com.example.deshika.customer
-
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
-import com.example.deshika.R
-@OptIn(ExperimentalMaterial3Api::class)
+import androidx.compose.ui.unit.sp
+import io.appwrite.services.Storage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.style.TextAlign
+import com.example.deshika.admin.AdminViewModel
+import com.example.deshika.admin.Product
+import io.appwrite.Client
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.navigation.NavController
+
 @Composable
-fun HomePage(
-    viewModel: CustomerViewModel,
-    navToProductDetails: (Product) -> Unit,
-    navToProfile: () -> Unit,
-    navToWishlist: () -> Unit,
-    navToCart: () -> Unit
+fun HomeScreen(
+    navController: NavController,
+    viewModel: AdminViewModel,
+    client: Client,
+    bucketId: String = "678bd18e0013db3bbfd8"
 ) {
-    val products by viewModel.products.collectAsState()
-    val user by viewModel.user.collectAsState()
-    val location by viewModel.location.collectAsState()
-    val searchQuery = remember { mutableStateOf("") }
+    var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val productList by viewModel.productList.observeAsState(emptyList())
+    val isLoading by viewModel.isLoading.observeAsState(false)
+    val storage = Storage(client)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.LocationOn, contentDescription = "Location")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(location.ifEmpty { "Fetching location..." })
-                    }
-                },
-                actions = {
-                    IconButton(onClick = navToProfile) {
-                        if (user?.profilePictureUrl?.isNotBlank() == true) {
-                            Image(
-                                painter = rememberAsyncImagePainter(user?.profilePictureUrl),
-                                contentDescription = "Profile",
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(CircleShape)
-                            )
-                        } else {
-                            Icon(painter = painterResource(R.drawable.ic_user), contentDescription = "Profile")
-                        }
-                    }
-                }
-            )
-        },
-        bottomBar = {
-            BottomAppBar {
-                Row(
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    IconButton(onClick = { /* Already Home */ }) {
-                        Icon(painterResource(R.drawable.ic_home), contentDescription = "Home")
-                    }
-                    IconButton(onClick = navToWishlist) {
-                        Icon(painterResource(R.drawable.ic_heart), contentDescription = "Wishlist")
-                    }
-                    IconButton(onClick = navToCart) {
-                        Icon(painterResource(R.drawable.ic_cart), contentDescription = "Cart")
-                    }
-                    IconButton(onClick = navToProfile) {
-                        Icon(painterResource(R.drawable.ic_user), contentDescription = "Profile")
-                    }
-                }
-            }
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-        ) {
-            // Search Bar
-            OutlinedTextField(
-                value = searchQuery.value,
-                onValueChange = { searchQuery.value = it },
-                placeholder = { Text("Search") },
-                leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = "Search") },
-                modifier = Modifier.fillMaxWidth()
-            )
+    LaunchedEffect(true) {
+        viewModel.fetchProducts()
+    }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // New Collection Section
+    Column(modifier = Modifier.padding(16.dp)) {
+        SearchBar(searchQuery) { query -> searchQuery = query }
+        Spacer(modifier = Modifier.height(16.dp))
+        if (isLoading) {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.primary)
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "New Collection\nDiscount 50% for the first transaction",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.Center).padding(16.dp)
-                )
+                CircularProgressIndicator()
+            }
+        } else {
+            val filteredProducts = productList.filter {
+                it.name.contains(searchQuery.text, ignoreCase = true)
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Categories
-            Text("Categories", style = MaterialTheme.typography.headlineSmall)
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(vertical = 8.dp)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(viewModel.predefinedCategories) { category ->
-                    Box(
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
-                            .clickable { /* Handle Category Filter */ },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = category, color = Color.White)
+                items(filteredProducts) { product ->
+                    ProductCard(product = product, storage = storage, bucketId = bucketId) {
+                        navController.navigate("productDetails/${product.id}")
                     }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Product Grid
-            Text("Flash Sale", style = MaterialTheme.typography.headlineSmall)
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(vertical = 8.dp)
-            ) {
-                items(products) { product ->
-                    ProductCard(product = product) { navToProductDetails(product) }
                 }
             }
         }
     }
+}
+
+@Composable
+fun ProductCard(product: Product, storage: Storage, bucketId: String, onClick: () -> Unit) {
+    var imageData by remember { mutableStateOf<ByteArray?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    LaunchedEffect(product.imageId) {
+        isLoading = true
+        try {
+            val result = withContext(Dispatchers.IO) {
+                storage.getFileDownload(bucketId = bucketId, fileId = product.imageId)
+            }
+            imageData = result
+        } catch (e: Exception) {
+            imageData = null
+        } finally {
+            isLoading = false
+        }
+    }
+
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .shadow(8.dp, RoundedCornerShape(12.dp))
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                imageData?.let {
+                    Image(
+                        bitmap = convertImageByteArrayToBitmap(it).asImageBitmap(),
+                        contentDescription = product.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = product.name,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Price: ${product.price} TK",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.Black,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+fun convertImageByteArrayToBitmap(imageData: ByteArray): Bitmap {
+    return BitmapFactory.decodeByteArray(imageData, 0, imageData.size)
 }

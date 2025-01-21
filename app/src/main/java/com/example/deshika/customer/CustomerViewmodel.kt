@@ -1,24 +1,29 @@
 package com.example.deshika.customer
 
 import android.util.Log
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.deshika.admin.Product
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-// Product data model
-data class Product(
-    val id: String = "",
-    val name: String = "",
-    val description: String = "",
-    val price: Double = 0.0,
-    val size: String = "",
-    val category: String = "",
-    val imageUrl: String = ""
-)
 
 // Order data model
 data class Order(
@@ -73,7 +78,6 @@ class CustomerViewModel(
         loadUserProfile()
     }
 
-    // Load products
     private fun loadProducts() {
         viewModelScope.launch {
             firestore.collection("products")
@@ -81,14 +85,18 @@ class CustomerViewModel(
                 .addOnSuccessListener { result ->
                     val productList = result.documents.mapNotNull { doc ->
                         doc.toObject(Product::class.java)?.copy(id = doc.id)
-                    }.filter { predefinedCategories.contains(it.category) }
+                    }
                     _products.value = productList
                 }
                 .addOnFailureListener { e ->
-                    Log.e("CustomerViewModel", "Failed to load products: ${e.message}")
+                    Log.e("CustomerViewModel", "Error loading products: ${e.message}")
                 }
         }
     }
+
+
+    // Function to get filtered products by category
+
 
     // Get products by category
     fun getProductsByCategory(category: String): StateFlow<List<Product>> {
@@ -250,4 +258,29 @@ class CustomerViewModel(
         _location.value = newLocation
     }
 
+}
+@Composable
+fun SearchBar(searchQuery: TextFieldValue, onSearchQueryChange: (TextFieldValue) -> Unit) {
+    OutlinedTextField(
+        value = searchQuery,
+        onValueChange = onSearchQueryChange,
+        label = { Text("Search products") },
+        modifier = Modifier.fillMaxWidth(),
+        trailingIcon = {
+            Icon(Icons.Default.Search, contentDescription = "Search")
+        }
+    )
+}
+@Composable
+fun CategoryFilter(categories: List<String>, selectedCategory: String, onCategorySelected: (String) -> Unit) {
+    LazyRow {
+        items(categories) { category ->
+            FilterChip(
+                selected = selectedCategory == category,
+                onClick = { onCategorySelected(category) },
+                label = { Text(category) },
+                modifier = Modifier.padding(end = 8.dp)
+            )
+        }
+    }
 }

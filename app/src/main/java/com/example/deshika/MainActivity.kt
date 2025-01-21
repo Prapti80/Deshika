@@ -24,24 +24,11 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.deshika.admin.UploadScreen
-import com.example.deshika.customer.CheckoutScreen
 import com.example.deshika.customer.CustomerViewModel
-import com.example.deshika.customer.HomePage
-import com.example.deshika.customer.LeaveOrderReviewScreen
-import com.example.deshika.customer.MyCartScreen
-import com.example.deshika.customer.MyOrdersScreen
-import com.example.deshika.customer.ProductDetailsScreen
-import com.example.deshika.customer.ProfileScreen
-import com.example.deshika.customer.SearchScreen
-import com.example.deshika.customer.ShippingAddressScreen
-import com.example.deshika.customer.WishlistScreen
+
+
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.firestore.FirebaseFirestore
 import io.appwrite.Client
@@ -81,7 +68,7 @@ class MainActivity : ComponentActivity() {
             val firestore = FirebaseFirestore.getInstance()
         val client = Client(this).setProject("678bc74400275005d6ad")
         setContent {
-            AppNavigation(viewModel = viewModel,    client = client, firestore= firestore)
+            AppNavigation(viewModel = AdminViewModel(client, firestore),    client = client, firestore= firestore)
         }
     }
 

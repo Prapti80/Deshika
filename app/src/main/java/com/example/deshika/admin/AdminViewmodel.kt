@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.launch
 import java.io.File
 import io.appwrite.Client
@@ -79,19 +80,21 @@ class AdminViewModel(
     // Fetch Products from Firestore
     fun fetchProducts() {
         _isLoading.value = true
-        firestore.collection("products").get()
+        firestore.collection("products")
+            .get(Source.SERVER) // Fetch fresh data from Firestore
             .addOnSuccessListener { snapshot ->
                 val products = snapshot.documents.mapNotNull { document ->
-                    document.toObject(Product::class.java) // Ensure this maps to admin.Product
+                    document.toObject(Product::class.java)
                 }
                 _productList.value = products
                 _isLoading.value = false
             }
             .addOnFailureListener { e ->
-                Log.e("Firestore", "Failed to fetch products: ${e.message}")
                 _isLoading.value = false
+                Log.e("Firestore", "Failed to fetch products: ${e.message}")
             }
     }
+
 
     fun updateProduct(
         productId: String,

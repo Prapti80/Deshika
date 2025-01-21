@@ -16,121 +16,31 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.navigation.NavController
 import com.example.deshika.R
+import com.example.deshika.admin.AdminViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(
-    viewModel: CustomerViewModel,
-    navToSettings: () -> Unit,
-    navToOrders: () -> Unit,
-    navToPaymentMethods: () -> Unit,
-    navToHelpCenter: () -> Unit,
-    navToPrivacyPolicy: () -> Unit,
-    navToLogoutConfirmation: () -> Unit
-) {
-    val user by viewModel.user.collectAsState()
-    val updatedName = remember { mutableStateOf(user?.name ?: "") }
-    val updatedEmail = remember { mutableStateOf(user?.email ?: "") }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Profile") })
+fun ProfileScreen(viewModel: AdminViewModel, navController: NavController) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text(text = "My Profile", style = MaterialTheme.typography.headlineMedium)
+        Button(onClick = { /* Logout Logic */ }, modifier = Modifier.fillMaxWidth()) {
+            Text("Logout")
         }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-        ) {
-            // User Profile Section
-            user?.let {
-                // Profile Picture
-                Image(
-                    painter = if (it.profilePictureUrl.isNotBlank()) {
-                        rememberAsyncImagePainter(it.profilePictureUrl)
-                    } else {
-                        painterResource(R.drawable.ic_placeholder) // Placeholder icon
-                    },
-                    contentDescription = "Profile Picture",
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                        .align(Alignment.CenterHorizontally)
-                        .clickable {
-                            // Add logic to open image picker and update profile picture
-                            // Example: viewModel.updateProfilePicture(newUri)
-                        }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Editable Fields for Name and Email
-                OutlinedTextField(
-                    value = updatedName.value,
-                    onValueChange = { updatedName.value = it },
-                    label = { Text("Name") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = updatedEmail.value,
-                    onValueChange = { updatedEmail.value = it },
-                    label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Save Changes Button
-                Button(
-                    onClick = {
-                        viewModel.updateUserProfile(
-                            name = updatedName.value,
-                            email = updatedEmail.value,
-                            profilePictureUrl = user?.profilePictureUrl ?: ""
-                        ) { success ->
-                            if (success) {
-                                // Notify the user about successful update
-                            }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Save Changes")
-                }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text = "My Orders", style = MaterialTheme.typography.headlineMedium)
+        LazyColumn {
+            items(viewModel.productList.value ?: emptyList()) { order ->
+                Text("Order: ${order.name} - ${order.price} TK")
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Profile Options
-            ProfileOptionItem("Your Profile") { /* Action for Profile Details */ }
-            ProfileOptionItem("Payment Methods", navToPaymentMethods)
-            ProfileOptionItem("My Orders", navToOrders)
-            ProfileOptionItem("Settings", navToSettings)
-            ProfileOptionItem("Help Center", navToHelpCenter)
-            ProfileOptionItem("Privacy Policy", navToPrivacyPolicy)
-            ProfileOptionItem("Log Out", navToLogoutConfirmation)
         }
-    }
-}
-
-@Composable
-fun ProfileOptionItem(title: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
     }
 }

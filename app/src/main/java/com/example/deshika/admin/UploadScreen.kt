@@ -42,7 +42,7 @@ fun UploadScreen(viewModel: AdminViewModel) {
     val productDescription = remember { mutableStateOf(TextFieldValue()) }
     val productPrice = remember { mutableStateOf(TextFieldValue()) }
     val productSize = remember { mutableStateOf(TextFieldValue()) }
-    val categories = listOf("Saree", "Kamij", "T Shirt", "Top")
+    val categories = listOf("Saree", "Kamij", "T-shirt", "Tops")
     val selectedCategory = remember { mutableStateOf(categories[0]) }
     val imageFile = remember { mutableStateOf<File?>(null) }
     val imageBitmap = remember { mutableStateOf<android.graphics.Bitmap?>(null) }
@@ -72,6 +72,8 @@ fun UploadScreen(viewModel: AdminViewModel) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
+            Spacer(modifier = Modifier.height(100.dp))
             DropdownCategory(categories, selectedCategory)
 
             Spacer(modifier = Modifier.height(16.dp))
