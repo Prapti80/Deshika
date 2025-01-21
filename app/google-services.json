@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "663448629382",
+    "project_id": "deshika-b47ee",
+    "storage_bucket": "deshika-b47ee.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:663448629382:android:871bc4c98e4e967d2f6107",
+        "android_client_info": {
+          "package_name": "com.example.deshika"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJQLJmbPWUdus1XbCkzEqprG31soD1zTY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
