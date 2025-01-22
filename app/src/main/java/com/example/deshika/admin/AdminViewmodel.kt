@@ -14,6 +14,7 @@ import io.appwrite.ID
 import io.appwrite.models.InputFile
 import io.appwrite.services.Storage
 
+
 class AdminViewModel(
     appwriteClient: Client,
     private val firestore: FirebaseFirestore
@@ -24,8 +25,33 @@ class AdminViewModel(
     private val _productList = MutableLiveData<List<Product>>()
     val productList: LiveData<List<Product>> get() = _productList
 
+    private val _cartItems = MutableLiveData<MutableList<Product>>(mutableListOf())
+    val cartItems: MutableLiveData<MutableList<Product>> get() = _cartItems
+
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
+
+    fun addToCart(product: Product) {
+        val currentCart = _cartItems.value ?: mutableListOf()
+        if (!currentCart.contains(product)) {
+            currentCart.add(product)
+            _cartItems.value = currentCart
+            Log.d("Cart", "Added product: ${product.name}")
+        }
+    }
+
+    fun removeFromCart(product: Product) {
+        val currentCart = _cartItems.value ?: mutableListOf()
+        currentCart.remove(product)
+        _cartItems.value = currentCart
+        Log.d("Cart", "Removed product: ${product.name}")
+    }
+
+
+    fun clearCart() {
+        _cartItems.value = mutableListOf()
+        Log.d("Cart", "Cart cleared")
+    }
 
     fun uploadProduct(
         name: String,
@@ -77,11 +103,12 @@ class AdminViewModel(
             file = InputFile.fromFile(file)
         ).id
     }
+
     // Fetch Products from Firestore
     fun fetchProducts() {
         _isLoading.value = true
         firestore.collection("products")
-            .get(Source.SERVER) // Fetch fresh data from Firestore
+            .get(Source.SERVER)
             .addOnSuccessListener { snapshot ->
                 val products = snapshot.documents.mapNotNull { document ->
                     document.toObject(Product::class.java)
@@ -94,7 +121,6 @@ class AdminViewModel(
                 Log.e("Firestore", "Failed to fetch products: ${e.message}")
             }
     }
-
 
     fun updateProduct(
         productId: String,
@@ -115,6 +141,7 @@ class AdminViewModel(
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { e -> onFailure(e.message ?: "Error deleting product") }
     }
+
     fun uploadProductImage(imageFile: File, onSuccess: (String) -> Unit, onFailure: (String) -> Unit) {
         viewModelScope.launch {
             try {
@@ -129,7 +156,6 @@ class AdminViewModel(
             }
         }
     }
-
 }
 
 // Data class for Product

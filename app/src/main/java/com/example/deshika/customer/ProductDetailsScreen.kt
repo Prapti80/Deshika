@@ -15,17 +15,24 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.deshika.admin.AdminViewModel
 import io.appwrite.services.Storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 @Composable
-fun ProductDetailsScreen(productId: String, viewModel: AdminViewModel, client: io.appwrite.Client) {
+fun ProductDetailsScreen(
+    productId: String,
+    viewModel: AdminViewModel,
+    client: io.appwrite.Client,
+    navController: NavController
+) {
     val productList by viewModel.productList.observeAsState(emptyList())
     val product = productList.find { it.id == productId }
     val storage = Storage(client)
     var imageData by remember { mutableStateOf<ByteArray?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+
     LaunchedEffect(Unit) {
         viewModel.fetchProducts()
     }
@@ -110,16 +117,23 @@ fun ProductDetailsScreen(productId: String, viewModel: AdminViewModel, client: i
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
-                    onClick = { /* Add to Cart Logic */ },
+                    onClick = {
+                        viewModel.addToCart(product)
+                        navController.navigate("cart")
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)),
                     modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
                 ) {
                     Text("Add to Cart")
                 }
                 Button(
-                    onClick = { /* Order Now Logic */ },
+                    onClick = {
+                        navController.navigate("orderConfirmation/${product.id}/${product.price}")
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5722)),
-                    modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 8.dp)
                 ) {
                     Text("Order Now")
                 }

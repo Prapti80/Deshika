@@ -1,14 +1,20 @@
 package com.example.deshika
 
 
+import OrderConfirmationScreen
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -30,7 +36,6 @@ import io.appwrite.Client
 import com.example.deshika.admin.AdminViewModel
 import com.example.deshika.customer.CartScreen
 import com.example.deshika.customer.HomeScreen
-import com.example.deshika.customer.OrderConfirmationScreen
 import io.appwrite.services.Storage
 
 
@@ -92,19 +97,54 @@ fun AppNavigation(viewModel: AdminViewModel,
 
         composable("productDetails/{productId}") { backStackEntry ->
             val productId = backStackEntry.arguments?.getString("productId")
-            if (productId != null) {
-                ProductDetailsScreen(productId = productId, viewModel = viewModel, client = client)
+
+            if (!productId.isNullOrEmpty()) {
+                ProductDetailsScreen(
+                    productId = productId,
+                    viewModel = viewModel,
+                    client = client,
+                    navController = navController
+                )
             } else {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Product not found", style = MaterialTheme.typography.headlineSmall)
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            "Product not found",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = { navController.popBackStack() }) {
+                            Text("Go Back")
+                        }
+                    }
                 }
             }
         }
 
 
+        composable("cart") {
+            CartScreen(
+                viewModel = viewModel, navController = navController,
+                client = client
+            )
+        }
 
-        composable("cart") { CartScreen(AdminViewModel(client, firestore), navController) }
-        composable("orderConfirmation") { OrderConfirmationScreen(navController) }
+
+        composable("orderConfirmation/{productId}/{productPrice}") { backStackEntry ->
+            val productId = backStackEntry.arguments?.getString("productId")
+            val productPrice = backStackEntry.arguments?.getString("productPrice")?.toDoubleOrNull()
+
+            if (productId != null && productPrice != null) {
+                OrderConfirmationScreen(navController, firestore, productPrice)
+            } else {
+                Text("Invalid product details")
+            }
+        }
+
         composable("profile") { ProfileScreen(AdminViewModel(client, firestore), navController) }
     }
 }
