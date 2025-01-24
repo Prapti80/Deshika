@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.List
@@ -161,7 +162,7 @@ fun DrawerContent(navController: NavController) {
             navController.navigate("cart")
         }
 
-        DrawerItem(icon = Icons.Default.ExitToApp, title = "Logout") {
+        DrawerItem(icon = Icons.AutoMirrored.Filled.ExitToApp, title = "Logout") {
             FirebaseAuth.getInstance().signOut()
             navController.navigate("login") {
                 popUpTo("home") { inclusive = true }

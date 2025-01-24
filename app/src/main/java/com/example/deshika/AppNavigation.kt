@@ -62,7 +62,11 @@ fun AppNavigation(viewModel: AdminViewModel,
                 navToDelete = { navController.navigate("deleteProduct") },
                 navToShow = { navController.navigate("showProduct") },
                 navToUpdate = { navController.navigate("showOrder") },
-                navToLogin = { navController.navigate("login") }
+                navToLogin = {
+                    FirebaseAuth.getInstance().signOut()
+                    navController.navigate("login") {
+                        popUpTo("adminHome") { inclusive = true }
+                    } }
             )
         }
 
