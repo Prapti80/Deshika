@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -65,71 +66,86 @@ fun UploadScreen(viewModel: AdminViewModel) {
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Admin Panel - Manage Products") }) }
-    ) {
-        Column(
+    ) { paddingValues ->
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(paddingValues)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Spacer(modifier = Modifier.height(100.dp))
-            DropdownCategory(categories, selectedCategory)
+            item { Spacer(modifier = Modifier.height(100.dp)) }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            item { DropdownCategory(categories, selectedCategory) }
 
-            ProductInputField("Product Name", productName)
-            ProductInputField("Product Description", productDescription)
-            ProductInputField("Product Price", productPrice)
-            ProductInputField("Product Size", productSize)
+            item { Spacer(modifier = Modifier.height(16.dp)) }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            item { ProductInputField("Product Name", productName) }
+            item { ProductInputField("Product Description", productDescription) }
+            item { ProductInputField("Product Price", productPrice) }
+            item { ProductInputField("Product Size", productSize) }
 
-            Button(onClick = { launcher.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
-                Text("Pick and Upload Image")
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+
+            item {
+                Button(onClick = { launcher.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
+                    Text("Pick and Upload Image")
+                }
             }
 
-            imageBitmap.value?.let { bitmap ->
-                Spacer(modifier = Modifier.height(16.dp))
-                androidx.compose.foundation.Image(
-                    bitmap = bitmap.asImageBitmap(),
-                    contentDescription = "Selected Image",
-                    modifier = Modifier.height(150.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = {
-                    if (productName.value.text.isBlank() || productDescription.value.text.isBlank() ||
-                        productPrice.value.text.isBlank() || productSize.value.text.isBlank() || imageFile.value == null
-                    ) {
-                        uploadStatus.value = "Please fill in all fields and upload an image."
-                        return@Button
-                    }
-
-                    uploadStatus.value = "Uploading product..."
-                    viewModel.uploadProduct(
-                        name = productName.value.text,
-                        description = productDescription.value.text,
-                        price = productPrice.value.text,
-                        size = productSize.value.text,
-                        category = selectedCategory.value,
-                        imageFile = imageFile.value!!,
-                        onSuccess = { uploadStatus.value = "Product uploaded successfully!" },
-                        onFailure = { error -> uploadStatus.value = "Upload failed: $error" }
+            item {
+                imageBitmap.value?.let { bitmap ->
+                    Spacer(modifier = Modifier.height(16.dp))
+                    androidx.compose.foundation.Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = "Selected Image",
+                        modifier = Modifier
+                            .height(150.dp)
+                            .fillMaxWidth()
                     )
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Submit Product")
+                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            item { Spacer(modifier = Modifier.height(16.dp)) }
 
-            uploadStatus.value?.let { status ->
-                Text(status, color = if (status.contains("successfully")) Color.Green else Color.Red)
+            item {
+                Button(
+                    onClick = {
+                        if (productName.value.text.isBlank() || productDescription.value.text.isBlank() ||
+                            productPrice.value.text.isBlank() || productSize.value.text.isBlank() || imageFile.value == null
+                        ) {
+                            uploadStatus.value = "Please fill in all fields and upload an image."
+                            return@Button
+                        }
+
+                        uploadStatus.value = "Uploading product..."
+                        viewModel.uploadProduct(
+                            name = productName.value.text,
+                            description = productDescription.value.text,
+                            price = productPrice.value.text,
+                            size = productSize.value.text,
+                            category = selectedCategory.value,
+                            imageFile = imageFile.value!!,
+                            onSuccess = { uploadStatus.value = "Product uploaded successfully!" },
+                            onFailure = { error -> uploadStatus.value = "Upload failed: $error" }
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Submit Product")
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+
+            item {
+                uploadStatus.value?.let { status ->
+                    Text(
+                        status,
+                        color = if (status.contains("successfully")) Color.Green else Color.Red
+                    )
+                }
             }
         }
     }

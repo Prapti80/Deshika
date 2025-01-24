@@ -7,7 +7,9 @@ data class Order(
     val phone: String = "",
     val location: String = "",
     val size: String = "",
+    val quantity: Int = 1,  // New quantity field with a default value of 1
     val paymentMethod: String = "",
+    val transactionId: String = "",
     val totalAmount: Double = 0.0,
     val deliveryCharge: Int = 0,
     val status: String = "Pending",  // New status field

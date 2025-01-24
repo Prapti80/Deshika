@@ -18,7 +18,6 @@ import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyOrdersScreen(navController: NavController, firestore: FirebaseFirestore) {
@@ -114,6 +113,7 @@ fun OrderCard(order: Order) {
             Text(text = "Phone: ${order.phone}", fontSize = 14.sp)
             Text(text = "Location: ${order.location}", fontSize = 14.sp)
             Text(text = "Size: ${order.size}", fontSize = 14.sp)
+            Text(text = "Quantity: ${order.quantity}", fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Text(text = "Payment Method: ${order.paymentMethod}", fontSize = 14.sp)
             Text(text = "Total Amount: ${order.totalAmount} TK", fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Text(text = "Delivery Charge: ${order.deliveryCharge} TK", fontSize = 14.sp)

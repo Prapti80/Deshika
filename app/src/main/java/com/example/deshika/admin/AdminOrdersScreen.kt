@@ -20,7 +20,6 @@ import androidx.navigation.NavController
 import com.example.deshika.customer.Order
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminOrdersScreen(navController: NavController, firestore: FirebaseFirestore) {
@@ -65,22 +64,13 @@ fun AdminOrdersScreen(navController: NavController, firestore: FirebaseFirestore
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when {
-                isLoading.value -> {
-                    CircularProgressIndicator()
-                }
-
-                errorMessage.value != null -> {
-                    Text(
-                        text = errorMessage.value!!,
-                        fontSize = 18.sp,
-                        color = Color.Red
-                    )
-                }
-
-                orders.isEmpty() -> {
-                    Text(text = "No orders found", fontSize = 18.sp, color = Color.Gray)
-                }
-
+                isLoading.value -> CircularProgressIndicator()
+                errorMessage.value != null -> Text(
+                    text = errorMessage.value!!,
+                    fontSize = 18.sp,
+                    color = Color.Red
+                )
+                orders.isEmpty() -> Text(text = "No orders found", fontSize = 18.sp, color = Color.Gray)
                 else -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
@@ -148,7 +138,6 @@ fun AdminOrderCard(order: Order, firestore: FirebaseFirestore) {
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "Order ID: ${order.orderId}", fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
@@ -156,9 +145,11 @@ fun AdminOrderCard(order: Order, firestore: FirebaseFirestore) {
             Text(text = "Phone: ${order.phone}", fontSize = 14.sp)
             Text(text = "Location: ${order.location}", fontSize = 14.sp)
             Text(text = "Size: ${order.size}", fontSize = 14.sp)
+            Text(text = "Quantity: ${order.quantity}", fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Text(text = "Payment Method: ${order.paymentMethod}", fontSize = 14.sp)
             Text(text = "Total Amount: ${order.totalAmount} TK", fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Text(text = "Delivery Charge: ${order.deliveryCharge} TK", fontSize = 14.sp)
+
             Text(
                 text = "Status: ${order.status}",
                 fontSize = 14.sp,
@@ -172,19 +163,12 @@ fun AdminOrderCard(order: Order, firestore: FirebaseFirestore) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
-                horizontalArrangement = Arrangement.End,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                IconButton(
-                    onClick = { showDialog = true },
-                ) {
+            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                IconButton(onClick = { showDialog = true }) {
                     Icon(imageVector = Icons.Default.Close, contentDescription = "Cancel Order", tint = Color.Red)
                 }
 
-                IconButton(
-                    onClick = { showConfirmDialog = true },
-                ) {
+                IconButton(onClick = { showConfirmDialog = true }) {
                     Icon(imageVector = Icons.Default.CheckCircle, contentDescription = "Confirm Order", tint = Color.Green)
                 }
             }

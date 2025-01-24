@@ -14,7 +14,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-
 @Composable
 fun OrderConfirmationScreen(navController: NavController, firestore: FirebaseFirestore, productPrice: Double) {
     var name by remember { mutableStateOf("") }
@@ -23,9 +22,10 @@ fun OrderConfirmationScreen(navController: NavController, firestore: FirebaseFir
     var size by remember { mutableStateOf("") }
     var paymentMethod by remember { mutableStateOf("COD") }
     var transactionId by remember { mutableStateOf("") }
+    var quantity by remember { mutableStateOf(1) } // Default quantity
     val context = LocalContext.current
     val deliveryCharge = if (location.lowercase().contains("sylhet")) 60 else 150
-    val totalAmount = productPrice + deliveryCharge
+    val totalAmount = (productPrice * quantity) + deliveryCharge
 
     LazyColumn(
         modifier = Modifier
@@ -66,6 +66,28 @@ fun OrderConfirmationScreen(navController: NavController, firestore: FirebaseFir
                 modifier = Modifier.fillMaxWidth()
             )
 
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Quantity Selection Row
+            Text(text = "Quantity", style = MaterialTheme.typography.bodyLarge)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Button(onClick = { if (quantity > 1) quantity-- }) {
+                    Text("-")
+                }
+                Text(
+                    text = "$quantity",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Button(onClick = { quantity++ }) {
+                    Text("+")
+                }
+            }
+
             // Bill Summary Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -74,7 +96,7 @@ fun OrderConfirmationScreen(navController: NavController, firestore: FirebaseFir
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = "Bill Summary", style = MaterialTheme.typography.headlineSmall)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Cloth Price: $productPrice TK", style = MaterialTheme.typography.bodyLarge)
+                    Text("Cloth Price: ${productPrice * quantity} TK", style = MaterialTheme.typography.bodyLarge)
                     Text("Delivery Charge: $deliveryCharge TK", style = MaterialTheme.typography.bodyLarge)
                     Divider(modifier = Modifier.padding(vertical = 8.dp))
                     Text("Total Amount: $totalAmount TK", style = MaterialTheme.typography.headlineSmall)
@@ -115,7 +137,7 @@ fun OrderConfirmationScreen(navController: NavController, firestore: FirebaseFir
             Button(
                 onClick = {
                     confirmOrder(
-                        name, phone, location, size, paymentMethod, transactionId, deliveryCharge, totalAmount, firestore
+                        name, phone, location, size, quantity, paymentMethod, transactionId, deliveryCharge, totalAmount, firestore
                     )
                     Toast.makeText(context, "Order Confirmed Successfully", Toast.LENGTH_SHORT).show()
                     navController.navigate("home")
@@ -156,6 +178,7 @@ fun confirmOrder(
     phone: String,
     location: String,
     size: String,
+    quantity: Int,
     paymentMethod: String,
     transactionId: String,
     deliveryCharge: Int,
@@ -172,10 +195,12 @@ fun confirmOrder(
         "phone" to phone,
         "location" to location,
         "size" to size,
+        "quantity" to quantity,
         "paymentMethod" to paymentMethod,
         "transactionId" to if (paymentMethod == "Bkash") transactionId else "",
         "deliveryCharge" to deliveryCharge,
         "totalAmount" to totalAmount,
+        "status" to "Pending",
         "timestamp" to System.currentTimeMillis()
     )
 
@@ -189,22 +214,3 @@ fun confirmOrder(
             println("Failed to place order: ${it.message}")
         }
 }
-
-//    // Save order payment information with orderId
-//    firestore.collection("orderPayments")
-//        .document(orderId)
-//        .set(
-//            hashMapOf(
-//                "orderId" to orderId,
-//                "totalAmount" to totalAmount,
-//                "paymentMethod" to paymentMethod,
-//                "transactionId" to if (paymentMethod == "Bkash") transactionId else "",
-//                "timestamp" to System.currentTimeMillis()
-//            )
-//        )
-//        .addOnSuccessListener {
-//            println("Payment info stored successfully with ID: $orderId")
-//        }
-//        .addOnFailureListener {
-//            println("Failed to store payment info: ${it.message}")
-//        }
