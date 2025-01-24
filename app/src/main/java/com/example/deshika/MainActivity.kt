@@ -68,8 +68,12 @@ class MainActivity : ComponentActivity() {
             val firestore = FirebaseFirestore.getInstance()
         val client = Client(this).setProject("678bc74400275005d6ad")
         setContent {
-            AppNavigation(viewModel = AdminViewModel(client, firestore),    client = client, firestore= firestore)
-        }
+            AppNavigation(
+                viewModel = AdminViewModel(client, firestore, applicationContext),
+                client = client,
+                firestore = firestore,
+                context = applicationContext
+            )}
     }
 
     private fun hasPermissions(): Boolean {

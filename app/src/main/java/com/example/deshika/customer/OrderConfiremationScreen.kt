@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
@@ -19,6 +20,7 @@ fun OrderConfirmationScreen(navController: NavController, firestore: FirebaseFir
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
+    var size by remember { mutableStateOf("") }
     var paymentMethod by remember { mutableStateOf("COD") }
     var transactionId by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -54,6 +56,13 @@ fun OrderConfirmationScreen(navController: NavController, firestore: FirebaseFir
                 value = location,
                 onValueChange = { location = it },
                 label = { Text("Location") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = size,
+                onValueChange = { size = it },
+                label = { Text("Size") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -106,13 +115,13 @@ fun OrderConfirmationScreen(navController: NavController, firestore: FirebaseFir
             Button(
                 onClick = {
                     confirmOrder(
-                        name, phone, location, paymentMethod, transactionId, deliveryCharge, totalAmount, firestore
+                        name, phone, location, size, paymentMethod, transactionId, deliveryCharge, totalAmount, firestore
                     )
                     Toast.makeText(context, "Order Confirmed Successfully", Toast.LENGTH_SHORT).show()
                     navController.navigate("home")
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = name.isNotEmpty() && phone.isNotEmpty() && location.isNotEmpty() &&
+                enabled = name.isNotEmpty() && phone.isNotEmpty() && location.isNotEmpty() && size.isNotEmpty() &&
                         (paymentMethod == "COD" || (paymentMethod == "Bkash" && transactionId.isNotEmpty()))
             ) {
                 Text("Confirm Order")
@@ -146,16 +155,23 @@ fun confirmOrder(
     name: String,
     phone: String,
     location: String,
+    size: String,
     paymentMethod: String,
     transactionId: String,
     deliveryCharge: Int,
     totalAmount: Double,
     firestore: FirebaseFirestore
 ) {
+    val orderId = firestore.collection("orders").document().id  // Generate unique order ID
+    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: "Unknown"
+
     val order = hashMapOf(
+        "orderId" to orderId,
+        "userId" to userId,   // Adding userId field
         "name" to name,
         "phone" to phone,
         "location" to location,
+        "size" to size,
         "paymentMethod" to paymentMethod,
         "transactionId" to if (paymentMethod == "Bkash") transactionId else "",
         "deliveryCharge" to deliveryCharge,
@@ -164,28 +180,31 @@ fun confirmOrder(
     )
 
     firestore.collection("orders")
-        .add(order)
+        .document(orderId)
+        .set(order)
         .addOnSuccessListener {
-            println("Order placed successfully")
+            println("Order placed successfully with ID: $orderId")
         }
         .addOnFailureListener {
             println("Failed to place order: ${it.message}")
         }
-
-    // Save order payment information
-    firestore.collection("orderPayments")
-        .add(
-            hashMapOf(
-                "totalAmount" to totalAmount,
-                "paymentMethod" to paymentMethod,
-                "transactionId" to if (paymentMethod == "Bkash") transactionId else "",
-                "timestamp" to System.currentTimeMillis()
-            )
-        )
-        .addOnSuccessListener {
-            println("Payment info stored successfully")
-        }
-        .addOnFailureListener {
-            println("Failed to store payment info: ${it.message}")
-        }
 }
+
+//    // Save order payment information with orderId
+//    firestore.collection("orderPayments")
+//        .document(orderId)
+//        .set(
+//            hashMapOf(
+//                "orderId" to orderId,
+//                "totalAmount" to totalAmount,
+//                "paymentMethod" to paymentMethod,
+//                "transactionId" to if (paymentMethod == "Bkash") transactionId else "",
+//                "timestamp" to System.currentTimeMillis()
+//            )
+//        )
+//        .addOnSuccessListener {
+//            println("Payment info stored successfully with ID: $orderId")
+//        }
+//        .addOnFailureListener {
+//            println("Failed to store payment info: ${it.message}")
+//        }

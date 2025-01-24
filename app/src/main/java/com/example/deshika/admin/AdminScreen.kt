@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import java.io.File
+import com.google.firebase.auth.FirebaseAuth
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -24,30 +24,52 @@ fun AdminHomeScreen(
     navToUpload: () -> Unit,
     navToDelete: () -> Unit,
     navToShow: () -> Unit,
-    navToUpdate: () -> Unit
+    navToUpdate: () -> Unit,
+    navToLogin: () -> Unit
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text("Admin Panel", textAlign = TextAlign.Center) }) }
     ) {
+
+
         Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(16.dp)
-            ) {
-                AdminButton("Upload Product", onClick = navToUpload)
-                AdminButton("Delete Product", onClick = navToDelete)
+            Spacer(modifier = Modifier.height(100.dp))
+            Column {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    AdminButton("Upload Product", onClick = navToUpload)
+                    AdminButton("Delete & Update Product", onClick = navToDelete)
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    AdminButton("Show Product", onClick = navToShow)
+                    AdminButton("Show Order", onClick = navToUpdate)
+                }
             }
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(16.dp)
+            // Logout Button
+            Button(
+                onClick = {
+                    FirebaseAuth.getInstance().signOut()
+                    navToLogin()  // Navigate to login screen
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
             ) {
-                AdminButton("Show Product", onClick = navToShow)
-                AdminButton("Update Product", onClick = navToUpdate)
+                Text("Log Out", textAlign = TextAlign.Center)
             }
         }
     }

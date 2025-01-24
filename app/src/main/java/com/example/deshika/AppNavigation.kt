@@ -1,8 +1,8 @@
 package com.example.deshika
 
-
 import OrderConfirmationScreen
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,27 +22,29 @@ import com.example.deshika.Log.ForgotPasswordScreen
 import com.example.deshika.Log.LoginScreen
 import com.example.deshika.Log.RegisterScreen
 import com.example.deshika.admin.AdminHomeScreen
+import com.example.deshika.admin.AdminOrdersScreen
 import com.example.deshika.admin.ShowProductsScreen
 import com.example.deshika.admin.UpdateDeleteProductScreen
 import com.example.deshika.admin.UploadScreen
 
 import com.example.deshika.customer.ProductDetailsScreen
 import com.example.deshika.customer.ProfileScreen
-import com.example.deshika.customer.SearchScreen
-
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import io.appwrite.Client
 import com.example.deshika.admin.AdminViewModel
 import com.example.deshika.customer.CartScreen
 import com.example.deshika.customer.HomeScreen
+import com.example.deshika.customer.MyOrdersScreen
 import io.appwrite.services.Storage
 
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun AppNavigation(viewModel: AdminViewModel,
-                  client: Client, firestore: FirebaseFirestore
+                  client: Client,
+                  firestore: FirebaseFirestore,
+                  context: Context
 ) {
     val navController = rememberNavController()
 
@@ -59,7 +61,8 @@ fun AppNavigation(viewModel: AdminViewModel,
                 navToUpload = { navController.navigate("uploadProduct") },
                 navToDelete = { navController.navigate("deleteProduct") },
                 navToShow = { navController.navigate("showProduct") },
-                navToUpdate = { navController.navigate("updateProduct") }
+                navToUpdate = { navController.navigate("showOrder") },
+                navToLogin = { navController.navigate("login") }
             )
         }
 
@@ -67,7 +70,7 @@ fun AppNavigation(viewModel: AdminViewModel,
         composable("uploadProduct") {
 
             UploadScreen(
-                viewModel = AdminViewModel(client, firestore)
+                viewModel = AdminViewModel(client, firestore,context)
             )
         }
 
@@ -76,13 +79,16 @@ fun AppNavigation(viewModel: AdminViewModel,
         composable("showProduct") {
 
             ShowProductsScreen(
-                viewModel = AdminViewModel(client, firestore),
+                viewModel = AdminViewModel(client, firestore,context),
                 client = client,
                 bucketId = "678bd18e0013db3bbfd8"
             )
         }
         composable("deleteProduct") {
-            UpdateDeleteProductScreen(AdminViewModel(client, firestore), client)
+            UpdateDeleteProductScreen(AdminViewModel(client, firestore,context), client)
+        }
+        composable("showOrder") {
+            AdminOrdersScreen(navController = navController, firestore)
         }
 
 //        composable("updateProduct") {
@@ -129,7 +135,7 @@ fun AppNavigation(viewModel: AdminViewModel,
         composable("cart") {
             CartScreen(
                 viewModel = viewModel, navController = navController,
-                client = client
+                client = client,context
             )
         }
 
@@ -145,7 +151,15 @@ fun AppNavigation(viewModel: AdminViewModel,
             }
         }
 
-        composable("profile") { ProfileScreen(AdminViewModel(client, firestore), navController) }
+        composable("profile") { ProfileScreen(
+            navController = navController
+        ) }
+        composable("orderHistory") {
+            MyOrdersScreen(
+                navController = navController,
+                firestore = firestore
+            )
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 package com.example.deshika.customer
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
@@ -32,8 +33,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
-fun CartScreen(viewModel: AdminViewModel, navController: NavController, client: Client) {
+fun CartScreen(viewModel: AdminViewModel, navController: NavController, client: Client, context: Context) {
     val cartItems by viewModel.cartItems.observeAsState(emptyList())
+
+    // Load cart items when the screen is opened
+    LaunchedEffect(Unit) {
+        viewModel.loadCartFromStorage()
+    }
 
     Column(modifier = Modifier.padding(16.dp)) {
         Text(text = "My Cart", style = MaterialTheme.typography.headlineSmall)
@@ -52,7 +58,9 @@ fun CartScreen(viewModel: AdminViewModel, navController: NavController, client: 
                     CartItem(
                         product = product,
                         client = client,
-                        onDelete = { viewModel.removeFromCart(product) },
+                        onDelete = {
+                            viewModel.removeFromCart(product)
+                        },
                         onOrderNow = {
                             navController.navigate("orderConfirmation/${product.id}/${product.price}")
                         },
@@ -129,7 +137,7 @@ fun CartItem(
             } else {
                 imageData?.let {
                     Image(
-                        bitmap = convertImageByteArrayToBitmap1(it).asImageBitmap(),
+                        bitmap = convertImageByteArrayToBitmap(it).asImageBitmap(),
                         contentDescription = product.name,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -175,7 +183,4 @@ fun CartItem(
     }
 }
 
-// Helper function to convert byte array to Bitmap
-fun convertImageByteArrayToBitmap1(imageData: ByteArray): Bitmap {
-    return BitmapFactory.decodeByteArray(imageData, 0, imageData.size)
-}
+
