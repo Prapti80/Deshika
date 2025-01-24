@@ -1,5 +1,8 @@
 package com.example.deshika.Log
+
+import android.content.Context
 import android.util.Patterns
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -8,16 +11,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.compose.runtime.Composable
-
-
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
-
+import com.example.deshika.R
 import com.google.firebase.auth.FirebaseAuth
+
 @Composable
-fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
+fun LoginScreen(navController: NavController, auth: FirebaseAuth, context: Context) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf(false) }
@@ -25,28 +26,20 @@ fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // Check if user is already logged in and handle admin session
-    LaunchedEffect(Unit) {
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            currentUser.reload().addOnCompleteListener { task ->
-                if (task.isSuccessful && currentUser.isEmailVerified) {
-                    val email = currentUser.email?.lowercase() ?: ""
+    val sharedPreferences = context.getSharedPreferences("DeshikaPrefs", Context.MODE_PRIVATE)
 
-                    if (email == "praptickb8@gmail.com") {  // Ensure case-insensitive check
-                        navController.navigate("adminHome") {
-                            popUpTo("login") { inclusive = true }
-                        }
-                    } else {
-                        navController.navigate("home") {
-                            popUpTo("login") { inclusive = true }
-                        }
-                    }
-                }
+    LaunchedEffect(Unit) {
+        val savedRole = sharedPreferences.getString("userRole", null)
+        if (savedRole == "admin") {
+            navController.navigate("adminHome") {
+                popUpTo("login") { inclusive = true }
+            }
+        } else if (savedRole == "customer") {
+            navController.navigate("home") {
+                popUpTo("login") { inclusive = true }
             }
         }
     }
-
 
     Column(
         modifier = Modifier
@@ -55,6 +48,12 @@ fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Image(
+            painter = painterResource(id = R.drawable.logo),  // Replace 'logo' with your actual image file name
+            contentDescription = "App Logo",
+            modifier = Modifier
+                .size(250.dp)
+        )
         CustomStyledTextField(
             value = email,
             onValueChange = {
@@ -89,6 +88,7 @@ fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
 
                 if (!emailError && !passwordError) {
                     if (email.trim().lowercase() == "praptickb8@gmail.com" && password == "123456prapti") {
+                        sharedPreferences.edit().putString("userRole", "admin").apply()
                         navController.navigate("adminHome") {
                             popUpTo("login") { inclusive = true }
                         }
@@ -100,6 +100,7 @@ fun LoginScreen(navController: NavController, auth: FirebaseAuth) {
                                 if (task.isSuccessful) {
                                     val user = auth.currentUser
                                     if (user != null && user.isEmailVerified) {
+                                        sharedPreferences.edit().putString("userRole", "customer").apply()
                                         navController.navigate("home") {
                                             popUpTo("login") { inclusive = true }
                                         }
