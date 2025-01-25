@@ -79,7 +79,7 @@ fun AdminHomeScreen(
                     // Navigate to login screen
                     navToLogin()
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8C6239)),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)

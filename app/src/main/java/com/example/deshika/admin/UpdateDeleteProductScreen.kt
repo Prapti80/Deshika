@@ -22,6 +22,11 @@ import android.content.Context
 import java.io.File
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 
 @Composable
 fun UpdateDeleteProductScreen(viewModel: AdminViewModel = viewModel(), client: Client) {
@@ -33,17 +38,20 @@ fun UpdateDeleteProductScreen(viewModel: AdminViewModel = viewModel(), client: C
             value = searchQuery,
             onValueChange = { searchQuery = it },
             label = { Text("Search Product") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                IconButton(onClick = { viewModel.fetchProducts() }) {
+                    Icon(Icons.Default.Search, contentDescription = "Search")
+                }
+            }
         )
-
-        Button(onClick = { viewModel.fetchProducts() }, modifier = Modifier.padding(top = 8.dp)) {
-            Text("Search")
-        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        productList.filter { it.name.contains(searchQuery, ignoreCase = true) }.forEach { product ->
-            ProductItem(product, viewModel, client)
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(productList.filter { it.name.contains(searchQuery, ignoreCase = true) }) { product ->
+                ProductItem(product, viewModel, client)
+            }
         }
     }
 }
@@ -65,7 +73,11 @@ fun ProductItem(product: Product, viewModel: AdminViewModel, client: Client) {
         }
     }
 
-    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             imageData?.let {
                 Image(
@@ -75,26 +87,22 @@ fun ProductItem(product: Product, viewModel: AdminViewModel, client: Client) {
                     modifier = Modifier.fillMaxWidth().height(200.dp)
                 )
             }
-            Text(text = product.name, style = MaterialTheme.typography.headlineMedium)
-            Text(text = "Price: ${product.price}", style = MaterialTheme.typography.bodyLarge)
+            Text(text = product.name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 8.dp))
+            Text(text = "Price: ${product.price}", style = MaterialTheme.typography.bodyMedium)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 Button(onClick = {
-                    try {
-                        viewModel.deleteProduct(product.id, {
-                            Toast.makeText(context, "Product deleted successfully", Toast.LENGTH_SHORT).show()
-                            showDialog = false
-                        }, { error ->
-                            println("Delete error: $error")
-                        })
-                    } catch (e: Exception) {
-                        println("Exception during delete: ${e.message}")
-                    }
+                    viewModel.deleteProduct(product.id, {
+                        Toast.makeText(context, "Product deleted successfully", Toast.LENGTH_SHORT).show()
+                        showDialog = false
+                    }, { error ->
+                        println("Delete error: $error")
+                    })
                 }) {
                     Text("Delete")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(onClick = { showDialog = true }) {
-                    Text(text = "Update")
+                    Text("Update")
                 }
             }
         }
@@ -124,37 +132,55 @@ fun ShowUpdateDialog(product: Product, viewModel: AdminViewModel, onDismiss: () 
 
     AlertDialog(
         onDismissRequest = { onDismiss() },
-        title = { Text("Update Product") },
+        title = { Text("Update Product", style = MaterialTheme.typography.headlineSmall) },
         text = {
-            Column {
-                OutlinedTextField(
-                    value = updatedName,
-                    onValueChange = { updatedName = it },
-                    label = { Text("Product Name") }
-                )
-                OutlinedTextField(
-                    value = updatedPrice,
-                    onValueChange = { updatedPrice = it },
-                    label = { Text("Price") }
-                )
-                OutlinedTextField(
-                    value = updatedDescription,
-                    onValueChange = { updatedDescription = it },
-                    label = { Text("Description") }
-                )
-                OutlinedTextField(
-                    value = updatedSize,
-                    onValueChange = { updatedSize = it },
-                    label = { Text("Size") }
-                )
-                Button(onClick = { launcher.launch("image/*") }) {
-                    Text("Pick Image")
+            LazyColumn(modifier = Modifier.padding(16.dp)) {
+                item {
+                    OutlinedTextField(
+                        value = updatedName,
+                        onValueChange = { updatedName = it },
+                        label = { Text("Product Name") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
-                imageFile?.let {
-                    Text("Image selected: ${it.name}")
+                item {
+                    OutlinedTextField(
+                        value = updatedPrice,
+                        onValueChange = { updatedPrice = it },
+                        label = { Text("Price") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
-                if (isUploading) {
-                    CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
+                item {
+                    OutlinedTextField(
+                        value = updatedDescription,
+                        onValueChange = { updatedDescription = it },
+                        label = { Text("Description") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                item {
+                    OutlinedTextField(
+                        value = updatedSize,
+                        onValueChange = { updatedSize = it },
+                        label = { Text("Size") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                item {
+                    Button(onClick = { launcher.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
+                        Text("Pick Image")
+                    }
+                }
+                item {
+                    imageFile?.let {
+                        Text("Image selected: ${it.name}", modifier = Modifier.padding(top = 8.dp))
+                    }
+                }
+                item {
+                    if (isUploading) {
+                        CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
+                    }
                 }
             }
         },
@@ -202,12 +228,12 @@ fun ShowUpdateDialog(product: Product, viewModel: AdminViewModel, onDismiss: () 
                         isUploading = false
                     })
                 }
-            }) {
+            }, modifier = Modifier.fillMaxWidth()) {
                 Text("Update")
             }
         },
         dismissButton = {
-            Button(onClick = { onDismiss() }) {
+            Button(onClick = { onDismiss() }, modifier = Modifier.fillMaxWidth()) {
                 Text("Cancel")
             }
         }

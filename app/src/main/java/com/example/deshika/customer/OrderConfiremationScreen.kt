@@ -9,11 +9,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+
 @Composable
 fun OrderConfirmationScreen(navController: NavController, firestore: FirebaseFirestore, productPrice: Double) {
     var name by remember { mutableStateOf("") }
@@ -22,7 +23,7 @@ fun OrderConfirmationScreen(navController: NavController, firestore: FirebaseFir
     var size by remember { mutableStateOf("") }
     var paymentMethod by remember { mutableStateOf("COD") }
     var transactionId by remember { mutableStateOf("") }
-    var quantity by remember { mutableStateOf(1) } // Default quantity
+    var quantity by remember { mutableStateOf(1) }
     val context = LocalContext.current
     val deliveryCharge = if (location.lowercase().contains("sylhet")) 60 else 150
     val totalAmount = (productPrice * quantity) + deliveryCharge
@@ -34,9 +35,12 @@ fun OrderConfirmationScreen(navController: NavController, firestore: FirebaseFir
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Text(text = "Order Confirmation", style = MaterialTheme.typography.headlineMedium)
+            Text(
+                text = "Order Confirmation",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold
+            )
             Spacer(modifier = Modifier.height(16.dp))
-
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -65,61 +69,44 @@ fun OrderConfirmationScreen(navController: NavController, firestore: FirebaseFir
                 label = { Text("Size") },
                 modifier = Modifier.fillMaxWidth()
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Quantity Selection Row
+            Spacer(modifier = Modifier.height(16.dp))
             Text(text = "Quantity", style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Button(onClick = { if (quantity > 1) quantity-- }) {
-                    Text("-")
-                }
+                Spacer(modifier = Modifier.width(50.dp))
+                Button(onClick = { if (quantity > 1) quantity-- }) { Text("-") }
                 Text(
                     text = "$quantity",
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold
                 )
-                Button(onClick = { quantity++ }) {
-                    Text("+")
-                }
+                Button(onClick = { quantity++ }) { Text("+") }
+                Spacer(modifier = Modifier.width(50.dp))
             }
-
-            // Bill Summary Card
+            Spacer(modifier = Modifier.height(16.dp))
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = "Bill Summary", style = MaterialTheme.typography.headlineSmall)
-                    Spacer(modifier = Modifier.height(8.dp))
                     Text("Cloth Price: ${productPrice * quantity} TK", style = MaterialTheme.typography.bodyLarge)
                     Text("Delivery Charge: $deliveryCharge TK", style = MaterialTheme.typography.bodyLarge)
                     Divider(modifier = Modifier.padding(vertical = 8.dp))
-                    Text("Total Amount: $totalAmount TK", style = MaterialTheme.typography.headlineSmall)
+                    Text("Total Amount: $totalAmount TK", style = MaterialTheme.typography.headlineMedium)
                 }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Text(text = "Select Payment Method:", style = MaterialTheme.typography.bodyLarge)
-
             Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = paymentMethod == "COD",
-                    onClick = { paymentMethod = "COD" }
-                )
+                RadioButton(selected = paymentMethod == "COD", onClick = { paymentMethod = "COD" })
                 Text(text = "Cash on Delivery", modifier = Modifier.padding(start = 8.dp))
-
                 Spacer(modifier = Modifier.width(16.dp))
-
-                RadioButton(
-                    selected = paymentMethod == "Bkash",
-                    onClick = { paymentMethod = "Bkash" }
-                )
+                RadioButton(selected = paymentMethod == "Bkash", onClick = { paymentMethod = "Bkash" })
                 Text(text = "Bkash", modifier = Modifier.padding(start = 8.dp))
             }
 
@@ -131,9 +118,15 @@ fun OrderConfirmationScreen(navController: NavController, firestore: FirebaseFir
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-
+            // Delivery Information Text
             Spacer(modifier = Modifier.height(16.dp))
-
+            Text(
+                text = "You will receive your parcel within 2-3 working days. Please check it in the presence of the delivery man.",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.fillMaxWidth(),
+                fontSize = 14.sp
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
                     confirmOrder(
@@ -147,27 +140,6 @@ fun OrderConfirmationScreen(navController: NavController, firestore: FirebaseFir
                         (paymentMethod == "COD" || (paymentMethod == "Bkash" && transactionId.isNotEmpty()))
             ) {
                 Text("Confirm Order")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Delivery Information Text
-            Text(
-                text = "You will receive your parcel within 2-3 working days. Please check it in the presence of the delivery man.",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.fillMaxWidth(),
-                fontSize = 14.sp
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Go Back to Home Screen Button
-            Button(
-                onClick = { navController.navigate("home") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-            ) {
-                Text("Go Back to Home Screen")
             }
         }
     }

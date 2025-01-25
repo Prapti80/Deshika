@@ -163,49 +163,71 @@ fun CategoryChip(category: String, isSelected: Boolean, onClick: () -> Unit) {
         Text(text = category, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
     }
 }
-
 @Composable
 fun DrawerContent(navController: NavController, context: Context) {
     val user = FirebaseAuth.getInstance().currentUser
 
-    Column(
+    Card(
         modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
+            .fillMaxWidth(0.80f)
+            .fillMaxHeight()
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(16.dp),
-
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
-        IconButton(
-            onClick = { navController.navigate("home") },
-            modifier = Modifier.align(Alignment.Start)
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back to Home",
-                tint = Color.Black
+            IconButton(
+                onClick = { navController.navigate("home") },
+                modifier = Modifier.align(Alignment.Start)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back to Home",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+
+            Text(
+                text = "Welcome!",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
-        }
-        Text(text = "Welcome!", style = MaterialTheme.typography.headlineSmall)
 
-        user?.email?.let {
-            Text(text = "Email: $it", fontSize = 16.sp, fontWeight = FontWeight.Medium)
-        } ?: Text(text = "Email: Not available", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+            user?.email?.let {
+                Text(
+                    text = "Email: $it",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            } ?: Text(
+                text = "Email: Not available",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
 
-        Divider()
+            Divider(color = MaterialTheme.colorScheme.onPrimaryContainer)
 
-        DrawerItem(icon = Icons.Default.List, title = "My Orders") {
-            navController.navigate("orderHistory")
-        }
+            DrawerItem(icon = Icons.Default.List, title = "My Orders") {
+                navController.navigate("orderHistory")
+            }
 
-        DrawerItem(icon = Icons.Default.ShoppingCart, title = "My Cart") {
-            navController.navigate("cart")
-        }
-        DrawerItem(icon = Icons.AutoMirrored.Filled.ExitToApp, title = "Logout") {
-            FirebaseAuth.getInstance().signOut()
-            clearUserRole(context)
-            navController.navigate("login") {
-                popUpTo("home") { inclusive = true }
+            DrawerItem(icon = Icons.Default.ShoppingCart, title = "My Cart") {
+                navController.navigate("cart")
+            }
+            DrawerItem(icon = Icons.AutoMirrored.Filled.ExitToApp, title = "Logout") {
+                FirebaseAuth.getInstance().signOut()
+                clearUserRole(context)
+                navController.navigate("login") {
+                    popUpTo("home") { inclusive = true }
+                }
             }
         }
     }

@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -89,6 +90,8 @@ fun ProductDetailsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(300.dp)
+                                .clip(RoundedCornerShape(16.dp))
+
                         )
                     }
                 }
